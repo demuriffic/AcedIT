@@ -12,17 +12,17 @@
   </head>
   <body>
     <div class="navbar">
-        <a href="index.html"><h1 id="logo">TRADE</h1></a>
+        <a href="index.php"><h1 id="logo">TRADE</h1></a>
         <button class="hamburger" id="hamburger">&#9776;</button>
         <ul class="nav-links" id="nav-links">
-            <li><a href="index.html#hero">Home</a></li>
+            <li><a href="index.php#hero">Home</a></li>
             <li class="divider">|</li>
-            <li><a href="index.html#howItWorks">How It Works</a></li>
+            <li><a href="index.php#howItWorks">How It Works</a></li>
             <li class="divider">|</li>
-            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.php#about">About</a></li>
         </ul>
     </div>
-    <div class="container">
+    <div class="container" style="margin-top: 80px; padding: 20px;">
         <h1>Upload Your Receipt</h1>
         <div id="drop-area" class="drop-area">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -35,23 +35,23 @@
                 <input type="file" id="fileElem" style="display:none" name="image" required>
                 <label class="upload-btn" for="fileElem">Browse Files</label>
                 <span class="mobile-upload-label">Tap here to upload your image</span>
-                <button type="submit" name="upload">Upload & Detect</button>
+                <button type="submit" class="upload-btn" style="margin-top:16px;">Submit</button>
+                <div class="preview" id="preview"></div>
             </form>
         </div>
     </div>
     <div class="container" id="result">
         <div id="preview">
             <!-- JS will inject the image here -->
-            <h2 id="resultText" style="display:none;">Your receipt is [result]</h2>
             <?php
-            if (isset($_POST['upload']) && isset($_FILES['image'])) {
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
                 $target_dir = "uploads/";
                 if (!is_dir($target_dir)) {
                     mkdir($target_dir);
                 }
                 $target_file = $target_dir . basename($_FILES["image"]["name"]);
                 if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                    $result = shell_exec("C:\\Users\\mecsung\\AppData\\Local\\Programs\\Python\\Python39\\python.exe predict.py " . escapeshellarg($target_file) . " 2>&1");
+                    $result = shell_exec("python predict.py " . escapeshellarg($target_file) . " 2>&1");
                     echo '<h3>Result: ' . htmlspecialchars(trim($result)) . '</h3>';
                     echo '<img src="' . htmlspecialchars($target_file) . '" alt="Uploaded Image" style="max-width:300px;">';
                 } else {

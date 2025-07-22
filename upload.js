@@ -1,7 +1,16 @@
+async function hashFile(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('fileElem');
 const preview = document.getElementById('preview');
 const resultText = document.getElementById('resultText');
+const uploadForm = document.querySelector('.upload-form');
+
+let selectedFiles = null;
 
 // Utility to show/hide result text
 function showResultText() {
@@ -28,15 +37,16 @@ dropArea.addEventListener('drop', handleDrop);
 function handleDrop(e) {
   dropArea.classList.remove('highlight');
   const dt = e.dataTransfer;
-  const files = dt.files;
-  handleFiles(files);
+  selectedFiles = dt.files;
+  previewSelectedImage(selectedFiles);
 }
 
 fileInput.addEventListener('change', (e) => {
-  handleFiles(e.target.files);
+  selectedFiles = e.target.files;
+  previewSelectedImage(selectedFiles);
 });
 
-function handleFiles(files) {
+function previewSelectedImage(files) {
   let foundImage = false;
   [...files].forEach(file => {
     if (file.type.startsWith('image/')) {
@@ -48,7 +58,7 @@ function handleFiles(files) {
         img.src = e.target.result;
         img.alt = "Preview";
         img.style.maxWidth = "100%";
-        img.style.maxHeight = "600px";
+        img.style.maxHeight = "300px";
         img.style.borderRadius = "8px";
         img.style.boxShadow = "0 2px 12px 0 rgba(18,18,18,0.25)";
         img.style.border = "1px solid #FFFFFF22";
@@ -57,10 +67,7 @@ function handleFiles(files) {
         showResultText();
         document.getElementById('result').scrollIntoView({behavior: 'smooth'});
       };
-      reader.readAsDataURL(file);
-
-      // Notify backend to increment total_tests
-      fetch('http://127.0.0.1:5000/api/increment', { method: 'POST' });
+    reader.readAsDataURL(file);
     }
   });
   if (!foundImage) {
@@ -68,5 +75,34 @@ function handleFiles(files) {
     hideResultText();
   }
 }
+
+// Handle form submit
+uploadForm.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  if (!selectedFiles || selectedFiles.length === 0) {
+    preview.innerHTML = "<p style='color:red;'>Please select an image file before submitting.</p>";
+    hideResultText();
+    return;
+  }
+  let foundImage = false;
+  for (const file of selectedFiles) {
+    if (file.type.startsWith('image/')) {
+      foundImage = true;
+      const hash = await hashFile(file);
+      // Notify backend to increment only if unique
+      fetch('http://127.0.0.1:5000/api/increment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ column: 'total_tests', file_hash: hash })
+      });
+      // You can add your actual upload logic here if needed
+      console.log('File hash sent:', hash);
+    }
+  }
+  if (!foundImage) {
+    preview.innerHTML = "<p style='color:red;'>Only image files are allowed.</p>";
+    hideResultText();
+  }
+});
 
 hideResultText(); // Hide result text initially

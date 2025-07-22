@@ -1,16 +1,3 @@
-// Password for the sake of demonstration
-const DEMO_PASSWORD = "admin123";
-
-function promptLogin() {
-  const pwd = prompt("Enter admin password:");
-  if (pwd !== DEMO_PASSWORD) {
-    alert("Incorrect password.");
-    window.location.href = "index.html";
-  }
-}
-
-promptLogin();
-
 // Fetch stats from Flask backend
 fetch('http://127.0.0.1:5000/api/stats')
   .then(res => res.json())
