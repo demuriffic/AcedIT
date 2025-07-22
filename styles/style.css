@@ -393,7 +393,7 @@ p, label   {
 
 /* Hero Section */
 #hero {
-  background-image: url('wallpaper.jpg');
+  background-image: url('../assets/wallpaper.jpg');
   background-size: 200%;
   background-position: left center;
   animation: hero-pan 40s linear infinite alternate;

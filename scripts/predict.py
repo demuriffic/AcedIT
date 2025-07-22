@@ -16,7 +16,7 @@ class_labels = ['AI-Generated', 'Authentic', 'Tampered', ]
 import logging
 logging.getLogger('absl').setLevel(logging.ERROR)
 
-model = load_model('vgg19_se_model.h5')
+model = load_model('models/vgg19_se_model.h5')
 
 img_path = sys.argv[1]
 img = image.load_img(img_path, target_size=(150, 150))

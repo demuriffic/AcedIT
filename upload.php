@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Upload Your Receipt | TRADE</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles/style.css">
   </head>
   <body>
     <div class="navbar">
@@ -51,10 +51,29 @@
                 }
                 $target_file = $target_dir . basename($_FILES["image"]["name"]);
                 if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                    $result = shell_exec("python predict.py " . escapeshellarg($target_file) . " 2>&1");
-                    echo '<h3>Result: ' . htmlspecialchars(trim($result)) . '</h3>';
-                    echo '<img src="' . htmlspecialchars($target_file) . '" alt="Uploaded Image" style="max-width:300px;">';
-                } else {
+                    $result = shell_exec("python scripts/predict.py " . escapeshellarg($target_file) . " 2>&1");
+                    // $result = shell_exec("C:\\Users\\mecsung\\AppData\\Local\\Programs\\Python\\Python39\\python.exe predict.py " . escapeshellarg($target_file) . " 2>&1");
+                    
+                    $result_lines = explode("\n", $result);
+                    $clean_result = '';
+                    foreach ($result_lines as $line) {
+                        // Only keep lines that do not contain 'Warning' and are not empty
+                        if (stripos($line, 'warning') === false && trim($line) !== '') {
+                            $clean_result = $line;
+                            break;
+                        }
+                    }
+                    echo '<h3>Result: ' . htmlspecialchars(trim($clean_result)) . '</h3>';
+                    // echo '<h3>Result: ' . htmlspecialchars(trim($result)) . '</h3>';
+                    echo '<img src="' . htmlspecialchars($target_file) . '" alt="Uploaded Image">';
+                      // Show heatmap only if it exists
+                      $base_name = pathinfo($target_file, PATHINFO_FILENAME);
+                      $heatmap_path = "heatmap/heatmap_" . $base_name . ".jpg";
+                      if (file_exists($heatmap_path)) {
+                          echo '<h3>Heatmap (AI/Tampered regions):</h3>';
+                          echo '<img src="' . htmlspecialchars($heatmap_path) . '" alt="Heatmap Result" style="max-width:100%;height:auto;">';
+                      }
+                  } else {
                     echo "<h3>Error uploading file.</h3>";
                 }
             }
