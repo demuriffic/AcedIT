@@ -40,13 +40,15 @@
         <a href="#hero"><h1 id="logo">TRADE</h1></a>
         <button class="hamburger" id="hamburger">&#9776;</button>
         <ul class="nav-links" id="nav-links">
-            <li><a href="upload.php">Upload</a></li> 
+            <?php if (isset($_SESSION['user'])): ?>
+            <li><a href="upload.php">Upload</a></li>
             <li class="divider">|</li>
+            <li><a href="profile.php">Profile</a></li> 
+            <li class="divider">|</li>
+            <?php endif; ?>
             <li><a href="#howItWorks">How It Works</a></li>
             <li class="divider">|</li>
             <li><a href="#about">About</a></li>
-            <li class="divider">|</li>
-            <li><a href="dashboard.php">Dashboard</a></li>
 <?php if (isset($_SESSION['user'])): ?>
             <li class="divider">|</li>
             <li><a href="logout.php">Logout</a></li>

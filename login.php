@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->fetch();
             if (password_verify($password, $h)) {
                 $_SESSION['user'] = $u;
-                header('Location: dashboard.php?msg=' . urlencode('Login successful!'));
+                header('Location: upload.php?msg=' . urlencode('Login successful!'));
                 exit;
             } else {
                 $msg = 'Invalid username/email or password.';

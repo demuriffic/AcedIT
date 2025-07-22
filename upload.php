@@ -1,51 +1,18 @@
 <?php
-session_start();
-if (!isset($_SESSION['user'])) {
-    header('Location: login.php?msg=' . urlencode('Please log in to upload receipts.'));
-    exit;
-}
+    session_start();
+    $user_id = $_SESSION['user'] ?? null;
 
-// --- TOKEN SYSTEM LOGIC ---
-$mysqli = new mysqli('localhost', 'root', '', 'receiptsdb');
-if ($mysqli->connect_errno) {
-    die('DB error: ' . htmlspecialchars($mysqli->connect_error));
-}
-$user = $_SESSION['user'];
-$stmt = $mysqli->prepare('SELECT plan, tokens_used, tokens_reset FROM users WHERE username = ?');
-$stmt->bind_param('s', $user);
-$stmt->execute();
-$stmt->bind_result($plan, $tokens_used, $tokens_reset);
-$stmt->fetch();
-$stmt->close();
+    $conn = new mysqli("localhost", "root", "", "receiptsdb");
 
-// Set plan limits (user, subscriber, professional, lgu)
-$limits = [
-    'user' => 50,
-    'subscriber' => 500,
-    'professional' => 1250,
-    'lgu' => -1 // unlimited
-];
-$today = date('Y-m-d');
-$month = date('Y-m');
-$reset_month = $tokens_reset ? date('Y-m', strtotime($tokens_reset)) : null;
-$limit = $limits[$plan] ?? 50;
-
-// Always reset tokens_used at the start of a new month (except for lgu, which is unlimited anyway)
-if ($plan !== 'lgu') {
-    if ($reset_month !== $month) {
-        $tokens_used = 0;
-        $stmt = $mysqli->prepare('UPDATE users SET tokens_used=0, tokens_reset=? WHERE username=?');
-        $stmt->bind_param('ss', $today, $user);
-        $stmt->execute();
-        $stmt->close();
+    $sql = "SELECT plan, tokens_used, tokens_reset FROM users WHERE username = '$user_id'";
+    $result = mysqli_query($conn, $sql);
+    if ($result && mysqli_num_rows($result) > 0) { 
+        $row = mysqli_fetch_assoc($result);
+        $plan = $row['plan'];
+        $tokens_used = $row['tokens_used'];
+        $tokens_reset = new DateTime($row['tokens_reset']);
     }
-    if ($limit > 0 && $tokens_used >= $limit) {
-        echo '<div class="container" style="margin-top:80px;"><h3>You have reached your monthly limit of ' . $limit . ' checks.<br>Upgrade your plan or wait until next month.</h3></div>';
-        exit;
-    }
-}
 ?>
-// --- END TOKEN SYSTEM LOGIC ---
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -63,21 +30,18 @@ if ($plan !== 'lgu') {
         <a href="index.php"><h1 id="logo">TRADE</h1></a>
         <button class="hamburger" id="hamburger">&#9776;</button>
         <ul class="nav-links" id="nav-links">
-            <li><a href="index.php#hero">Home</a></li>
+            <li><a href="upload.php">Upload</a></li> 
+            <li class="divider">|</li>
+            <li><a href="profile.php">Profile</a></li> 
             <li class="divider">|</li>
             <li><a href="index.php#howItWorks">How It Works</a></li>
             <li class="divider">|</li>
             <li><a href="index.php#about">About</a></li>
-        <?php if (isset($_SESSION['user'])): ?>
             <li class="divider">|</li>
             <li><a href="logout.php">Logout</a></li>
-        <?php else: ?>
-            <li class="divider">|</li>
-            <li><a href="login.php">Login</a></li>
-        <?php endif; ?>
         </ul>
     </div>
-    <div class="container" style="margin-top: 80px; padding: 20px;">
+    <div class="container">
         <h1>Upload Your Receipt</h1>
         <div id="drop-area" class="drop-area">
             <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -86,62 +50,78 @@ if ($plan !== 'lgu') {
                 <rect x="12" y="36" width="24" height="2.5" rx="1.25" fill="#FFFFFF" fill-opacity="0.7"/>
               </svg>
             <form class="upload-form" method="POST" enctype="multipart/form-data">
+                <?php echo $tokens_used ." credits remaining"; ?>
                 <p>Drag & drop your receipt image here, or</p>
                 <input type="file" id="fileElem" style="display:none" name="image" required>
                 <label class="upload-btn" for="fileElem">Browse Files</label>
                 <span class="mobile-upload-label">Tap here to upload your image</span>
-                <button type="submit" class="upload-btn" style="margin-top:16px;">Submit</button>
-                <div class="preview" id="preview"></div>
+                <button type="submit" name="upload" class="upload-btn">Upload & Detect</button>
+                <div id="preview"></div>
             </form>
         </div>
     </div>
     <div class="container" id="result">
-        <div id="preview">
-            <!-- JS will inject the image here -->
             <?php
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['image'])) {
+            
+            if (isset($_POST['upload']) && isset($_FILES['image'])) {
                 $target_dir = "uploads/";
+
                 if (!is_dir($target_dir)) {
                     mkdir($target_dir);
                 }
                 $target_file = $target_dir . basename($_FILES["image"]["name"]);
+
                 if (move_uploaded_file($_FILES["image"]["tmp_name"], $target_file)) {
-                    // Calculate SHA256 hash of the file
-                    $hash = hash_file('sha256', $target_file);
-                    // Run AI prediction
                     $result = shell_exec("python predict.py " . escapeshellarg($target_file) . " 2>&1");
-                    $result = trim($result);
-                    // Check if hash already exists
-                    $stmt = $mysqli->prepare('SELECT id FROM receipts WHERE file_hash = ?');
-                    $stmt->bind_param('s', $hash);
-                    $stmt->execute();
-                    $stmt->store_result();
-                    $is_unique = ($stmt->num_rows === 0);
-                    if ($is_unique) {
-                        // Insert new unique receipt
-                        $stmt2 = $mysqli->prepare('INSERT INTO receipts (file_hash, result, uploaded_at) VALUES (?, ?, NOW())');
-                        $stmt2->bind_param('ss', $hash, $result);
-                        $stmt2->execute();
-                        $stmt2->close();
-                        // Increment tokens_used for non-LGU
-                        if ($plan !== 'lgu' && $limit > 0) {
-                            $stmt3 = $mysqli->prepare('UPDATE users SET tokens_used = tokens_used + 1 WHERE username = ?');
-                            $stmt3->bind_param('s', $user);
-                            $stmt3->execute();
-                            $stmt3->close();
-                        }
-                        echo '<h3>Result: ' . htmlspecialchars($result) . ' (Unique - Counted)</h3>';
-                    } else {
-                        echo '<h3>Result: ' . htmlspecialchars($result) . ' (Duplicate - Not Counted)</h3>';
+                    
+                    $result_lines = explode("\n", $result);
+                    $clean_result = '';
+                    $color_class = 'result-tampered';
+                    
+                    // Color coding based on result
+                    if (stripos($result, 'AI-Generated') == true) {
+                        $color_class = 'result-ai';
+                    } elseif (stripos($result, 'Authentic') == true) {
+                        $color_class = 'result-authentic';
                     }
-                    $stmt->close();
-                    echo '<img src="' . htmlspecialchars($target_file) . '" alt="Uploaded Image" style="max-width:300px;">';
-                } else {
-                    echo "<h3>Error uploading file.</h3>";
+                    foreach ($result_lines as $line) {
+                        // Only keep lines that do not contain 'Warning' and are not empty
+                        if (stripos($line, 'warning') === false && trim($line) !== '') {
+                            $clean_result = $line;
+                            break;
+                        }
+                    }
+                    echo '<div class="result-img"><img src="' . htmlspecialchars($target_file) . '" alt="Uploaded Image">';
+                    // Show heatmap only if it exists
+                    $base_name = pathinfo($target_file, PATHINFO_FILENAME);
+                    $heatmap_path = "heatmap/heatmap_" . $base_name . ".jpg";
+                    if (file_exists($heatmap_path)) {
+                        echo '<img src="' . htmlspecialchars($heatmap_path) . '" alt="Heatmap Result">';
+                    }
+                    echo '</div>';
+                    // Display the result with color coding
+                    echo '<div id="result-text" class="' . $color_class . '">';
+                    echo '<h3>Result: ' . htmlspecialchars(trim($clean_result)) . '</h3>';
+                    echo '<p class="result-description">This result indicates the authenticity of the receipt based on our AI model.</p>';
+                    echo '</div>';
+                    // Show the report button only if the result is AI-Generated or Tampered
+                    if (stripos($result, 'AI-Generated') == true) {
+                        echo '<div id="report"><button class="report-btn">Report AI-Generated Receipt</button>';
+                    } elseif (stripos($result, 'Authentic') == true) {
+                        echo '<button class="report-btn">Report Authentic Receipt</button></div>';
+                    }
+                    } else {
+                        echo "<h3>Error uploading file.</h3>";
+                    }
+
+                    // After a successful check, increment tokens_used:
+                    $tokens_used = $tokens_used - 1;
+
+                    $user_id = mysqli_real_escape_string($conn, $user_id);
+                    $update = "UPDATE users SET tokens_used='$tokens_used' WHERE username = '$user_id'";
+                    $result_update = mysqli_query($conn, $update);
                 }
-            }
             ?>
-        </div>
     </div>
     <script src="index.js"></script>
     <script src="upload.js"></script>

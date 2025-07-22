@@ -1,8 +1,8 @@
-async function hashFile(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-  return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+// async function hashFile(file) {
+//   const arrayBuffer = await file.arrayBuffer();
+//   const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+//   return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+// }
 
 const dropArea = document.getElementById('drop-area');
 const fileInput = document.getElementById('fileElem');
@@ -67,7 +67,7 @@ function previewSelectedImage(files) {
         showResultText();
         document.getElementById('result').scrollIntoView({behavior: 'smooth'});
       };
-    reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
     }
   });
   if (!foundImage) {
@@ -77,31 +77,13 @@ function previewSelectedImage(files) {
 }
 
 // Handle form submit
-uploadForm.addEventListener('submit', async function(e) {
-  e.preventDefault();
+uploadForm.addEventListener('submit', function(e) {
+  // Let the form submit normally to PHP
   if (!selectedFiles || selectedFiles.length === 0) {
     preview.innerHTML = "<p style='color:red;'>Please select an image file before submitting.</p>";
     hideResultText();
+    e.preventDefault();
     return;
-  }
-  let foundImage = false;
-  for (const file of selectedFiles) {
-    if (file.type.startsWith('image/')) {
-      foundImage = true;
-      const hash = await hashFile(file);
-      // Notify backend to increment only if unique
-      fetch('http://127.0.0.1:5000/api/increment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ column: 'total_tests', file_hash: hash })
-      });
-      // You can add your actual upload logic here if needed
-      console.log('File hash sent:', hash);
-    }
-  }
-  if (!foundImage) {
-    preview.innerHTML = "<p style='color:red;'>Only image files are allowed.</p>";
-    hideResultText();
   }
 });
 
