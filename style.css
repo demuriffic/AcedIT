@@ -1,24 +1,4 @@
-/* Plan Button (matches #uploadButton) */
-.plan-btn {
-  background-color: #1E90FF;
-  color: #fff;
-  margin-top: 20px;
-  padding: 25px 50px;
-  border-radius: 5px;
-  font-family: 'Inter', sans-serif;
-  font-weight: 500;
-  cursor: pointer;
-  border: none;
-  transition: background 0.3s, transform 0.05s;
-  font-size: 1rem;
-}
-.plan-btn:hover {
-  background-color: crimson;
-}
-.plan-btn:active {
-  background-color: #a30000;
-  transform: scale(0.95);
-}
+
 * {
   margin: 0;
   padding: 0;
@@ -680,31 +660,85 @@ canvas {
   box-shadow: 0 4px 32px 0 #0008;
   text-align: center;
   position: relative;
+  font-family: 'Inter', sans-serif;
 }
 
 .pricing-plans-row {
   display: flex;
   flex-direction: row;
-  gap: 32px;
   justify-content: center;
-  align-items: stretch;
-  margin: 32px 0 0 0;
+  margin-top: 32px;
+  height: 480px;
 }
 
 .plan {
   background: #232323;
   border-radius: 12px;
-  padding: 28px 18px 24px 18px;
+  padding: 30px 30px;
   box-shadow: 0 2px 8px 0 #0004;
-  flex: 1 1 0;
-  min-width: 200px;
-  max-width: 320px;
+  width: 25%;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  text-align: start;
+  margin: 20px;
+  border: 1px solid #6b6b6b;
+}
+.most-popular {
+  background-color: #00703c;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+.sub-title {
+  margin: 10px 0;
+  font-size: 15px;
+  opacity: 50%;
+}
+.pricing {
+  font-size: 30px;
+  font-weight: 900;
+}
+.per-month {
+  font-size: 10px;
+  font-weight: normal;
+}
+.plan-text {
+  margin: 10px 0;
+  border-top: 1px solid #cbcbcb;
+}
+.plan-text li {
+  margin: 10px 0;
+  font-size: 12px;
+  opacity: 50%;
+}
+.plan-header {
+  height: 80%;
+}
+/* Plan Button (matches #uploadButton) */
+.plan-btn {
+  background-color: #1E90FF;
+  color: #fff;
+  margin-top: 20px;
+  padding: 25px 50px;
+  border-radius: 5px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background 0.3s, transform 0.05s;
+  font-size: 1rem;
+}
+.plan-btn:hover {
+  background-color: crimson;
+}
+.plan-btn:active {
+  background-color: #a30000;
+  transform: scale(0.95);
 }
 
-.plan h3 { margin: 0 0 12px 0; }
+
 
 .close-pricing-btn {
   position: absolute;

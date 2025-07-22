@@ -10,7 +10,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>TRADE | Fake eReceipt Detector</title>
     <link rel="stylesheet" href="style.css">
-  </head>
+
+    </head>
   <body>
     <script>
       // Show ToS modal if not previously agreed
@@ -87,8 +88,8 @@
     <div class="container" id="about">
         <h1>About Trade</h1>
         <p>TRADE stands for Tampered Receipt AI Detection for E-Transactions. It’s a tool we created to help spot fake or edited digital receipts. Some people try to change receipts using photo editing tools or even make new ones using AI. This can be used to trick stores, banks, or other businesses.
-TRADE uses smart technology to check if a receipt is real or fake. It looks for signs that something has been changed or added. This helps businesses stay safe and makes sure people are being honest.
-If you want to protect your business from fraud, TRADE can help you catch fake receipts before they cause problems.</p>
+        TRADE uses smart technology to check if a receipt is real or fake. It looks for signs that something has been changed or added. This helps businesses stay safe and makes sure people are being honest.
+        If you want to protect your business from fraud, TRADE can help you catch fake receipts before they cause problems.</p>
     </div>
     <!-- Pricing Modal -->
     <div id="pricingModal" class="pricing-modal">
@@ -97,22 +98,52 @@ If you want to protect your business from fraud, TRADE can help you catch fake r
         <h2>Choose Your Plan</h2>
         <div class="pricing-plans-row">
           <div class="plan">
-            <h3>User (Basic)</h3>
-            <p><strong>Free</strong></p>
-            <p>50 Checks Monthly</p>
-            <button class="select-plan plan-btn" data-plan="user">Get Started</button>
+            <div class="plan-header">
+              <h3>BASIC</h3>
+              <div class="sub-title">Access basic AI detection.</div>
+              <div class="pricing">₱ 0.00 <span class="per-month">/ MONTH</span></div>
+              <div class="plan-text">
+                <li>50 checks per month</li>
+                <li>50 checks per month</li>
+                <li>Dataset cover Gcash and Maya</li>
+                <li>Uses Trade 1.0 AI model</li>
+                <li>1 month of storing previous receipts</li>
+              </div>
+            </div>
+            <button class="select-plan plan-btn" data-plan="user">Choose Plan</button>
+          </div>
+          <div class="plan plan-premimum">
+            <div class="plan-header">
+              <h3>PREMIUM <span class="most-popular">MOST POPULAR</span></h3>
+              <div class="sub-title">Access premium AI detection.</div>
+              <div class="pricing">₱ 249.99 <span class="per-month">/ MONTH</span></div>
+              <div class="plan-text">
+                <li>500 checks per month</li>
+                <li>Dataset cover Gcash, Maya, other banking apps</li>
+                <li>Uses Trade 1.5 AI model</li>
+                <li>Faster analysis</li>
+                <li>Heat map visualization of detection</li>
+                <li>6 months of storing previous receipts</li>
+              </div>
+            </div>
+            <button class="select-plan plan-btn" data-plan="subscriber">Choose Plan</button>
           </div>
           <div class="plan">
-            <h3>Subscriber</h3>
-            <p><strong>500 Checks Monthly</strong></p>
-            <p>249.99 PHP per Month</p>
-            <button class="select-plan plan-btn" data-plan="subscriber">Subscribe</button>
-          </div>
-          <div class="plan">
-            <h3>Professional</h3>
-            <p><strong>1000 + 250 Checks Monthly</strong></p>
-            <p>449.99 PHP per Month</p>
-            <button class="select-plan plan-btn" data-plan="professional">Subscribe</button>
+            <div class="plan-header">
+              <h3>PROFESSIONAL</h3>
+              <div class="sub-title">Access premium AI detection.</div>
+              <div class="pricing">₱ 449.99 <span class="per-month">/ MONTH</span></div>
+              <div class="plan-text">
+                <li>1000 + 250 checks per month</li>
+                <li>Dataset cover Gcash, Maya, other banking apps</li>
+                <li>Uses Trade 2.0 AI model</li>
+                <li>Fastest analysis</li>
+                <li>Bulk uploading of images</li>
+                <li>Heat map visualization of detection</li>
+                <li>12 months of storing previous receipts</li>
+              </div>
+            </div>
+            <button class="select-plan plan-btn" data-plan="professional">Choose Plan</button>
           </div>
         </div>
       </div>
