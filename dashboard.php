@@ -2,23 +2,39 @@
 session_start();
 // Only allow access if logged in and plan is 'lgu'
 if (!isset($_SESSION['user'])) {
-    header('Location: login.html?msg=' . urlencode('Please log in as LGU Admin to access the dashboard.'));
+    header('Location: login.php?msg=' . urlencode('Please log in as LGU Admin to access the dashboard.'));
     exit;
 }
 $username = $_SESSION['user'];
-$usersFile = __DIR__ . '/users.txt';
 $plan = '';
-if (file_exists($usersFile)) {
-    $lines = file($usersFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        $parts = explode('|', $line);
-        $u = $parts[0] ?? '';
-        $p = $parts[3] ?? '';
-        if (strtolower($u) === strtolower($username)) {
-            $plan = $p;
-            break;
-        }
+$mysqli = new mysqli('localhost', 'root', '', 'receiptsdb'); // adjust user/pass/db as needed
+if ($mysqli->connect_errno) {
+    die('Failed to connect to MySQL: ' . $mysqli->connect_error);
+}
+$stmt = $mysqli->prepare('SELECT plan FROM users WHERE username = ?');
+$stmt->bind_param('s', $username);
+$stmt->execute();
+$stmt->bind_result($plan);
+$stmt->fetch();
+$stmt->close();
+// --- Stats endpoint for AJAX ---
+if (isset($_GET['stats'])) {
+    $total = 0; $fake = 0; $real = 0;
+    $result = $mysqli->query('SELECT COUNT(*) as total, SUM(result="fake") as fake, SUM(result="real") as real FROM receipts');
+    if ($row = $result->fetch_assoc()) {
+        $total = (int)$row['total'];
+        $fake = (int)$row['fake'];
+        $real = (int)$row['real'];
     }
+    $ratio = $real > 0 ? round($fake / $real, 2) : ($fake > 0 ? '∞' : 0);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'total_tests' => $total,
+        'fake_count' => $fake,
+        'real_count' => $real,
+        'ratio' => $ratio
+    ]);
+    exit;
 }
 if ($plan !== 'lgu') {
     // Show error message directly instead of redirecting
@@ -75,7 +91,7 @@ if ($plan !== 'lgu') {
 </head>
 <body>
     <div class="navbar">
-        <a href="index.html"><h1 id="logo">TRADE</h1></a>
+        <a href="index.php"><h1 id="logo">TRADE</h1></a>
         <button class="hamburger" id="hamburger">&#9776;</button>
         <ul class="nav-links" id="nav-links">
             <li><a href="index.php#hero">Home</a></li>
@@ -116,6 +132,33 @@ if ($plan !== 'lgu') {
         <canvas id="statsChart" width="700" height="300"></canvas>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Fetch stats from PHP endpoint
+    async function fetchStats() {
+        const res = await fetch('dashboard.php?stats=1');
+        if (!res.ok) return;
+        const data = await res.json();
+        document.getElementById('total-tests').textContent = data.total_tests;
+        document.getElementById('fake-count').textContent = data.fake_count;
+        document.getElementById('real-count').textContent = data.real_count;
+        document.getElementById('ratio').textContent = data.ratio;
+        // Chart.js
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Fake', 'Real'],
+                datasets: [{
+                    label: 'Receipts',
+                    data: [data.fake_count, data.real_count],
+                    backgroundColor: ['crimson', '#1E90FF']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+    }
+    fetchStats();
+    </script>
     <script src="dashboard.js"></script>
 </body>
 </html>

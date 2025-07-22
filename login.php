@@ -4,29 +4,28 @@ $msg = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
-    $usersFile = __DIR__ . '/users.txt';
-    $found = false;
-    if (file_exists($usersFile)) {
-        $lines = file($usersFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            $parts = explode('|', $line);
-            $u = $parts[0] ?? '';
-            $e = $parts[1] ?? '';
-            $h = $parts[2] ?? '';
-            if (strtolower($u) === strtolower($username) || strtolower($e) === strtolower($username)) {
-                if (password_verify($password, $h)) {
-                    $found = true;
-                    $_SESSION['user'] = $u;
-                    break;
-                }
-            }
-        }
-    }
-    if ($found) {
-        header('Location: dashboard.php?msg=' . urlencode('Login successful!'));
-        exit;
+    $mysqli = new mysqli('localhost', 'root', '', 'receiptsdb'); // adjust as needed
+    if ($mysqli->connect_errno) {
+        $msg = 'Database connection failed: ' . htmlspecialchars($mysqli->connect_error);
     } else {
-        $msg = 'Invalid username/email or password.';
+        $stmt = $mysqli->prepare('SELECT username, email, password FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1');
+        $stmt->bind_param('ss', $username, $username);
+        $stmt->execute();
+        $stmt->store_result();
+        if ($stmt->num_rows === 1) {
+            $stmt->bind_result($u, $e, $h);
+            $stmt->fetch();
+            if (password_verify($password, $h)) {
+                $_SESSION['user'] = $u;
+                header('Location: dashboard.php?msg=' . urlencode('Login successful!'));
+                exit;
+            } else {
+                $msg = 'Invalid username/email or password.';
+            }
+        } else {
+            $msg = 'Invalid username/email or password.';
+        }
+        $stmt->close();
     }
 }
 ?>

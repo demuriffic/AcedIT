@@ -1,3 +1,0 @@
-pogi|pogi@pogi.com|$2y$10$L9LJly2GQm3X7nbtmcpge.sqgnlSboP/G8Uw7H1vWZZ/6SDWrB7km|user
-dasd|d31d3@gmail.com|$2y$10$V9Hlj0p8K45v99bAbjhuzOdqKBspe1xpG2KS1Fs1GE8nZoSlF8ph.|subscriber
-admin|admin@lgu.com|$2y$10$EQEBK3GIXNyoKmJUZw3cQeEtmKDFNECJIrwrKaARZO77U2XlqG50C|lgu

@@ -98,19 +98,19 @@ If you want to protect your business from fraud, TRADE can help you catch fake r
             <h3>User (Basic)</h3>
             <p><strong>Free</strong></p>
             <p>50 Checks Monthly</p>
-            <button class="select-plan" data-plan="user">Get Started</button>
+            <button class="select-plan plan-btn" data-plan="user">Get Started</button>
           </div>
           <div class="plan">
             <h3>Subscriber</h3>
             <p><strong>500 Checks Monthly</strong></p>
             <p>249.99 PHP per Month</p>
-            <button class="select-plan" data-plan="subscriber">Subscribe</button>
+            <button class="select-plan plan-btn" data-plan="subscriber">Subscribe</button>
           </div>
           <div class="plan">
             <h3>Professional</h3>
             <p><strong>1000 + 250 Checks Monthly</strong></p>
             <p>449.99 PHP per Month</p>
-            <button class="select-plan" data-plan="professional">Subscribe</button>
+            <button class="select-plan plan-btn" data-plan="professional">Subscribe</button>
           </div>
         </div>
       </div>

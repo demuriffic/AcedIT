@@ -13,31 +13,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (strlen($password) < 6 || strlen($password) > 64) {
         $msg = 'Password must be 6-64 characters.';
     } else {
-        $valid_plans = ['user', 'subscriber', 'professional', 'lgu'];
+        $valid_plans = ['user', 'subscriber', 'professional'];
         if (!in_array($plan, $valid_plans)) {
             $msg = 'Please select a valid plan.';
         } else {
-            $usersFile = __DIR__ . '/users.txt';
-            $exists = false;
-            if (file_exists($usersFile)) {
-                $lines = file($usersFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-                foreach ($lines as $line) {
-                    $parts = explode('|', $line);
-                    $u = $parts[0] ?? '';
-                    $e = $parts[1] ?? '';
-                    if (strtolower($u) === strtolower($username) || strtolower($e) === strtolower($email)) {
-                        $exists = true;
-                        break;
-                    }
-                }
-            }
-            if ($exists) {
-                $msg = 'Username or email already registered.';
+            $mysqli = new mysqli('localhost', 'root', '', 'receiptsdb'); // adjust as needed
+            if ($mysqli->connect_errno) {
+                $msg = 'Database connection failed: ' . htmlspecialchars($mysqli->connect_error);
             } else {
-                $hash = password_hash($password, PASSWORD_DEFAULT);
-                $entry = $username . '|' . $email . '|' . $hash . '|' . $plan . "\n";
-                file_put_contents($usersFile, $entry, FILE_APPEND | LOCK_EX);
-                $msg = 'Registration successful! You can now log in.';
+                // Check for existing username or email
+                $stmt = $mysqli->prepare('SELECT id FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1');
+                $stmt->bind_param('ss', $username, $email);
+                $stmt->execute();
+                $stmt->store_result();
+                if ($stmt->num_rows > 0) {
+                    $msg = 'Username or email already registered.';
+                } else {
+                    $hash = password_hash($password, PASSWORD_DEFAULT);
+                    $stmt2 = $mysqli->prepare('INSERT INTO users (username, email, password, plan) VALUES (?, ?, ?, ?)');
+                    $stmt2->bind_param('ssss', $username, $email, $hash, $plan);
+                    if ($stmt2->execute()) {
+                        $msg = 'Registration successful! You can now log in.';
+                    } else {
+                        $msg = 'Registration failed: ' . htmlspecialchars($stmt2->error);
+                    }
+                    $stmt2->close();
+                }
+                $stmt->close();
             }
         }
     }
@@ -137,7 +139,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <option value="user">User</option>
           <option value="subscriber">Subscriber</option>
           <option value="professional">Professional</option>
-          <option value="lgu">LGU</option>
         </select>
         <button type="submit">Register</button>
         <div class="feedback" id="feedback"><?php if ($msg) echo htmlspecialchars($msg); ?></div>

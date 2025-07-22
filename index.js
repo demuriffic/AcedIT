@@ -38,12 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.select-plan').forEach(btn => {
     btn.addEventListener('click', (e) => {
       const plan = btn.getAttribute('data-plan');
-      if (plan === 'user') {
-        window.location.href = 'register.php'; // or your registration/login page
-      } else if (plan === 'subscriber') {
-        window.location.href = 'subscribe.php'; // or your subscribe page
-      } else {
-        window.location.href = 'mailto:support@example.com?subject=TRADE%20Constituent%20or%20LGU%20Inquiry';
+      if (plan === 'user' || plan === 'subscriber' || plan === 'professional') {
+        // Redirect to the respective plan page
+        window.location.href = 'register.php?';
       }
     });
   });
